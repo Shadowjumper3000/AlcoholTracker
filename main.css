@@ -411,6 +411,7 @@ input, select, textarea {
 		padding: 0 1rem;
         margin: auto;
 		text-decoration: none;
+		text-align: center;
 		width: 50%;
 	}
 
