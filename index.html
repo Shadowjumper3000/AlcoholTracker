@@ -99,8 +99,11 @@
 
                     var transaction = db.transaction(["drinks"], "readwrite");
                     var objectStore = transaction.objectStore("drinks");
-                    var request = objectStore.delete(drink.id);
-
+                    if (drink.id !== undefined) {
+                        var request = objectStore.delete(drink.id);
+                    } else {
+                        console.error("Invalid key");
+                    }
                     request.onsuccess = function(event) {
                         console.log("Drink deleted successfully");
                         // Remove the deleted drink from the table
