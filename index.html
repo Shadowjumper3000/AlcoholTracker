@@ -79,23 +79,27 @@
         </script>
         <script>
             var db;
-            function deleteDrink(key) {
-                console.log("Attempting to delete drink with key: ", key);
+            function deleteDrink(id) {
+                if (id === undefined) {
+                    console.error("Cannot delete drink: id is undefined");
+                    return;
+                }
+
                 var dbRequest = indexedDB.open("AlcoholTrackerDB");
 
                 dbRequest.onsuccess = function(event) {
                     var db = event.target.result;
                     var transaction = db.transaction(["drinks"], "readwrite");
                     var objectStore = transaction.objectStore("drinks");
-                    var deleteRequest = objectStore.delete(key);
+                    var deleteRequest = objectStore.delete(id);
 
                     deleteRequest.onsuccess = function(event) {
-                        console.log("Drink deleted successfully");
-                        location.reload(); // Reload the page to update the chart
+                        console.log("Deleted drink with id " + id);
+                        location.reload(); // Reload the page to update the table
                     };
 
                     deleteRequest.onerror = function(event) {
-                        console.error("Failed to delete drink");
+                        console.error("Failed to delete drink with id " + id);
                     };
                 };
 
@@ -131,26 +135,30 @@
                 if (!db.objectStoreNames.contains('drinks')) {
                     var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
                 }
-            };
 
-            request.onerror = function(event) {
-                alert("Failed to open the database");
             };
 
             request.onsuccess = function(event) {
                 var db = event.target.result;
-
-                // Open a transaction to access the object store
                 var transaction = db.transaction(["drinks"], "readonly");
-
-                // Get the object store
                 var objectStore = transaction.objectStore("drinks");
+                var cursorRequest = objectStore.openCursor();
 
-                // Get all the drinks from the object store
-                var request = objectStore.getAll();
+                var drinks = [];
 
-                request.onsuccess = function(event) {
-                    var drinks = event.target.result;
+                cursorRequest.onsuccess = function(event) {
+                    var cursor = event.target.result;
+
+                    if (cursor) {
+                        var drink = cursor.value;
+                        // Check if drink is defined
+                        if (drink) {
+                            drink.id = cursor.key; // Add the key as the id property
+                            drinks.push(drink);
+                        }
+                        cursor.continue();
+                    } else {
+                    // No more results, process the drinks
 
                     // Filter the drinks to get only the ones from the last week
                     var today = new Date();
@@ -220,6 +228,7 @@
                         th.textContent = header;
                         headerRow.appendChild(th);
                     });
+
                     thead.appendChild(headerRow);
                     table.appendChild(thead);
 
@@ -260,14 +269,9 @@
 
                     // Append the table to the document body
                     document.body.appendChild(table);
-
-                };
-
-                request.onerror = function(event) {
-                    alert("Failed to retrieve drinks from the database");
                 };
             };
-
+        };
         </script>
     </body>
 </html>
