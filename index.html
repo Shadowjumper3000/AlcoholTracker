@@ -6,11 +6,13 @@
             var db;
         
             function saveDrink() {
-                var request = indexedDB.open("AlcoholTrackerDB", 1);
-        
+                var request = indexedDB.open("AlcoholTrackerDB", 2); // Increment the version number
+
                 request.onupgradeneeded = function(event) {
                     db = event.target.result;
-                    var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
+                    if (!db.objectStoreNames.contains('drinks')) {
+                        var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
+                    }
                 };
         
                 request.onerror = function(event) {
@@ -93,7 +95,14 @@
         <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
         <script>
             // Open the IndexedDB database
-            var request = indexedDB.open("AlcoholTrackerDB", 1);
+            var request = indexedDB.open("AlcoholTrackerDB", 2); // Increment the version number
+
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains('drinks')) {
+                    var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
+                }
+            };
 
             request.onerror = function(event) {
                 alert("Failed to open the database");
@@ -193,7 +202,7 @@
                         var nameCell = document.createElement("td");
                         nameCell.textContent = drink.name;
                         row.appendChild(nameCell);
-                        
+
                         var volumeCell = document.createElement("td");
                         volumeCell.textContent = drink.volume;
                         row.appendChild(volumeCell);
