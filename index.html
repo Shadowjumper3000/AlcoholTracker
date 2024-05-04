@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Alcohol Tracker</title>
+        <link rel="stylesheet" href="main.css">
         <script>
             var db;
         
@@ -76,11 +77,56 @@
                 };
             }
         </script>
+        <script>
+            var db;
+
+            function deleteDrink(drink) {
+                var request = indexedDB.open("AlcoholTrackerDB", 2);
+
+                request.onupgradeneeded = function(event) {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains('drinks')) {
+                        var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
+                    }
+                };
+
+                request.onerror = function(event) {
+                    alert("Failed to open the database");
+                };
+
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+
+                    var transaction = db.transaction(["drinks"], "readwrite");
+                    var objectStore = transaction.objectStore("drinks");
+                    var request = objectStore.delete(drink.id);
+
+                    request.onsuccess = function(event) {
+                        console.log("Drink deleted successfully");
+                        // Remove the deleted drink from the table
+                        var row = document.getElementById("drink-" + drink.id);
+                        if (row) {
+                            row.parentNode.removeChild(row);
+                        } else {
+                            console.error("Element not found");
+                        }
+
+                        // Reload the page to update the chart
+                        location.reload();
+                    };
+
+                    request.onerror = function(event) {
+                        console.log("Failed to delete drink");
+                    };
+                };
+            }
+        </script>
     </head>
 
     <body>
         <h1>Alcohol Tracker</h1>
         <p>Enter the details of your drink below to track your alcohol consumption.</p>
+        <p>WIE MACHT DER BÄR?</p>
         <form>
             <label for="name">Name:</label>
             <input type="text" id="name" required><br><br>
@@ -92,7 +138,7 @@
         </form>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-        <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+        <canvas id="myChart" style="width:200%;max-width:12000px;"></canvas>
         <script>
             // Open the IndexedDB database
             var request = indexedDB.open("AlcoholTrackerDB", 2); // Increment the version number
@@ -184,7 +230,7 @@
                     var tbody = document.createElement("tbody");
 
                     // Create table headers
-                    var headers = ["Name", "Volume (ml)", "Alcohol Percentage", "Date"];
+                    var headers = ["Name", "Volume (ml)", "Alcohol Percentage", "Date", "Actions"];
                     var headerRow = document.createElement("tr");
                     headers.forEach(function(header) {
                         var th = document.createElement("th");
@@ -215,6 +261,15 @@
                         dateCell.textContent = new Date(drink.date).toLocaleDateString();
                         row.appendChild(dateCell);
 
+                        var actionsCell = document.createElement("td");
+                        var deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.addEventListener("click", function() {
+                            deleteDrink(drink);
+                        });
+                        actionsCell.appendChild(deleteButton);
+                        row.appendChild(actionsCell);
+
                         tbody.appendChild(row);
                     });
 
@@ -222,6 +277,7 @@
 
                     // Append the table to the document body
                     document.body.appendChild(table);
+
                 };
 
                 request.onerror = function(event) {
