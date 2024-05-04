@@ -91,6 +91,7 @@
 
                     deleteRequest.onsuccess = function(event) {
                         console.log("Drink deleted successfully");
+                        location.reload(); // Reload the page to update the chart
                     };
 
                     deleteRequest.onerror = function(event) {
@@ -247,7 +248,7 @@
                         var deleteButton = document.createElement("button");
                         deleteButton.textContent = "Delete";
                         deleteButton.addEventListener("click", function() {
-                            deleteDrink(drink.id);
+                            deleteDrink(drink.id); // Use drink.id here
                         });
                         actionsCell.appendChild(deleteButton);
                         row.appendChild(actionsCell);
