@@ -1,7 +1,5 @@
 # Alcohol Tracker
 
-This alcohol tracker was commissioned by my friend Lennart. It calculates the amount of alcohol consumed based on the volume and percentage of the drink. It also stores one week's worth of data in local storage.
-
 ## Usage
 
 To use the Alcohol Tracker, follow these steps:
