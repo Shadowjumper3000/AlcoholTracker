@@ -80,55 +80,26 @@
         <script>
             var db;
 
-            function deleteDrink(drink) {
-                var request = indexedDB.open("AlcoholTrackerDB", 2);
+            function deleteDrink(key) {
+                var dbRequest = indexedDB.open("AlcoholTrackerDB");
 
-                request.onupgradeneeded = function(event) {
-                    db = event.target.result;
-                    if (!db.objectStoreNames.contains('drinks')) {
-                        var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
-                    }
-                };
-
-                request.onerror = function(event) {
-                    alert("Failed to open the database");
-                };
-
-                request.onsuccess = function(event) {
-                    db = event.target.result;
-
+                dbRequest.onsuccess = function(event) {
+                    var db = event.target.result;
                     var transaction = db.transaction(["drinks"], "readwrite");
                     var objectStore = transaction.objectStore("drinks");
-                    
-                    if (drink.id !== undefined) {
-                        var request = objectStore.delete(drink.id);
-                        request.onsuccess = function(event) {
-                            
-                        };
-                        request.onerror = function(event) {
-                            console.log("Failed to delete drink");
-                        };
-                    } else {
-                        console.error("Invalid key");
-                    }
+                    var deleteRequest = objectStore.delete(key);
 
-                    request.onsuccess = function(event) {
+                    deleteRequest.onsuccess = function(event) {
                         console.log("Drink deleted successfully");
-                        // Remove the deleted drink from the table
-                        var row = document.getElementById("drink-" + drink.id);
-                        if (row) {
-                            row.parentNode.removeChild(row);
-                        } else {
-                            console.error("Element not found");
-                        }
-
-                        // Reload the page to update the chart
-                        location.reload();
                     };
 
-                    request.onerror = function(event) {
-                        console.log("Failed to delete drink");
+                    deleteRequest.onerror = function(event) {
+                        console.error("Failed to delete drink");
                     };
+                };
+
+                dbRequest.onerror = function(event) {
+                    console.error("Failed to open database");
                 };
             }
         </script>
@@ -276,7 +247,7 @@
                         var deleteButton = document.createElement("button");
                         deleteButton.textContent = "Delete";
                         deleteButton.addEventListener("click", function() {
-                            deleteDrink(drink);
+                            deleteDrink(drink.id);
                         });
                         actionsCell.appendChild(deleteButton);
                         row.appendChild(actionsCell);
