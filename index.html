@@ -79,8 +79,8 @@
         </script>
         <script>
             var db;
-
             function deleteDrink(key) {
+                console.log("Attempting to delete drink with key: ", key);
                 var dbRequest = indexedDB.open("AlcoholTrackerDB");
 
                 dbRequest.onsuccess = function(event) {
