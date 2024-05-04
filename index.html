@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Alcohol Tracker</title>
+        <script>
+            var db;
+        
+            function saveDrink() {
+                var request = indexedDB.open("AlcoholTrackerDB", 1);
+        
+                request.onupgradeneeded = function(event) {
+                    db = event.target.result;
+                    var objectStore = db.createObjectStore("drinks", { autoIncrement: true });
+                };
+        
+                request.onerror = function(event) {
+                    alert("Failed to open the database");
+                };
+        
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+        
+                    var name = document.getElementById("name").value;
+                    var volume = document.getElementById("volume").value;
+                    var alcoholPercentage = document.getElementById("alcoholPercentage").value;
+                    var today = new Date();
+        
+                    var drink = {
+                        name: name,
+                        volume: volume,
+                        alcoholPercentage: alcoholPercentage,
+                        date: today.toISOString()
+                    };
+        
+                    var transaction = db.transaction(["drinks"], "readwrite");
+                    var objectStore = transaction.objectStore("drinks");
+                    var request = objectStore.add(drink);
+        
+                    request.onsuccess = function(event) {
+                        document.getElementById("volume").value = "";
+                        document.getElementById("alcoholPercentage").value = "";
+        
+                        var oneWeekAgo = new Date();
+                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+                        var transaction = db.transaction(["drinks"], "readwrite");
+                        var objectStore = transaction.objectStore("drinks");
+                        var request = objectStore.openCursor();
+        
+                        request.onsuccess = function(event) {
+                            var cursor = event.target.result;
+                            if (cursor) {
+                                var drinkDate = new Date(cursor.value.date);
+                                if (drinkDate < oneWeekAgo) {
+                                    var deleteRequest = cursor.delete();
+                                    deleteRequest.onsuccess = function() {
+                                        console.log("Drink deleted successfully");
+                                    };
+                                    deleteRequest.onerror = function() {
+                                        console.log("Failed to delete drink");
+                                    };
+                                }
+                                cursor.continue();
+                            }
+                        };
+        
+                        // Reload the page to update the chart
+                        location.reload();
+                    };
+        
+                    request.onerror = function(event) {
+                        alert("Failed to save the drink");
+                    };
+                };
+            }
+        </script>
+    </head>
+
+    <body>
+        <h1>Alcohol Tracker</h1>
+        <p>Enter the details of your drink below to track your alcohol consumption.</p>
+        <form>
+            <label for="name">Name:</label>
+            <input type="text" id="name" required><br><br>
+            <label for="volume">Volume (ml):</label>
+            <input type="number" id="volume" required><br><br>
+            <label for="alcoholPercentage">Alcohol Percentage:</label>
+            <input type="number" id="alcoholPercentage" required><br><br>
+            <button type="button" onclick="saveDrink()">Save Drink</button>
+        </form>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+        <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+        <script>
+            // Open the IndexedDB database
+            var request = indexedDB.open("AlcoholTrackerDB", 1);
+
+            request.onerror = function(event) {
+                alert("Failed to open the database");
+            };
+
+            request.onsuccess = function(event) {
+                var db = event.target.result;
+
+                // Open a transaction to access the object store
+                var transaction = db.transaction(["drinks"], "readonly");
+
+                // Get the object store
+                var objectStore = transaction.objectStore("drinks");
+
+                // Get all the drinks from the object store
+                var request = objectStore.getAll();
+
+                request.onsuccess = function(event) {
+                    var drinks = event.target.result;
+
+                    // Filter the drinks to get only the ones from the last week
+                    var today = new Date();
+                    var oneWeekAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+                    var lastWeekDrinks = drinks.filter(function(drink) {
+                        var drinkDate = new Date(drink.date);
+                        return drinkDate >= oneWeekAgo;
+                    });
+
+                    // Group the drinks by date
+                    var groupedDrinks = {};
+                    lastWeekDrinks.forEach(function(drink) {
+                        var drinkDate = new Date(drink.date).toLocaleDateString();
+                        if (!groupedDrinks[drinkDate]) {
+                            groupedDrinks[drinkDate] = [];
+                        }
+                        groupedDrinks[drinkDate].push(drink);
+                    });
+
+                    // Calculate the total alcohol consumed each day
+                    var xValues = [];
+                    var yValues = [];
+                    for (var date in groupedDrinks) {
+                        var totalAlcohol = 0;
+                        groupedDrinks[date].forEach(function(drink) {
+                            totalAlcohol += drink.volume * drink.alcoholPercentage / 100;
+                        });
+                        xValues.push(date);
+                        yValues.push(totalAlcohol);
+                    }
+
+                    new Chart("myChart", {
+                        type: "line",
+                        data: {
+                            labels: xValues,
+                            datasets: [{
+                                fill: false,
+                                lineTension: 0,
+                                backgroundColor: "rgba(0,0,255,1.0)",
+                                borderColor: "rgba(0,0,255,0.1)",
+                                data: yValues
+                            }]
+                        },
+                        options: {
+                            legend: {display: false},
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        min: 0,
+                                        max: Math.max(...yValues) * 1.5
+                                    }
+                                }]
+                            }
+                        }
+                    });
+
+                    // Display the stored drinks in a table
+                    var table = document.createElement("table");
+                    var thead = document.createElement("thead");
+                    var tbody = document.createElement("tbody");
+
+                    // Create table headers
+                    var headers = ["Name", "Volume (ml)", "Alcohol Percentage", "Date"];
+                    var headerRow = document.createElement("tr");
+                    headers.forEach(function(header) {
+                        var th = document.createElement("th");
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    // Create table rows for each drink
+                    drinks.forEach(function(drink) {
+                        var row = document.createElement("tr");
+
+                        // Create table cells for each drink property
+                        var nameCell = document.createElement("td");
+                        nameCell.textContent = drink.name;
+                        row.appendChild(nameCell);
+                        
+                        var volumeCell = document.createElement("td");
+                        volumeCell.textContent = drink.volume;
+                        row.appendChild(volumeCell);
+
+                        var alcoholPercentageCell = document.createElement("td");
+                        alcoholPercentageCell.textContent = drink.alcoholPercentage;
+                        row.appendChild(alcoholPercentageCell);
+
+                        var dateCell = document.createElement("td");
+                        dateCell.textContent = new Date(drink.date).toLocaleDateString();
+                        row.appendChild(dateCell);
+
+                        tbody.appendChild(row);
+                    });
+
+                    table.appendChild(tbody);
+
+                    // Append the table to the document body
+                    document.body.appendChild(table);
+                };
+
+                request.onerror = function(event) {
+                    alert("Failed to retrieve drinks from the database");
+                };
+            };
+
+        </script>
+    </body>
+</html>
