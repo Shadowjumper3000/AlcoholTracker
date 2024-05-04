@@ -99,11 +99,19 @@
 
                     var transaction = db.transaction(["drinks"], "readwrite");
                     var objectStore = transaction.objectStore("drinks");
+                    
                     if (drink.id !== undefined) {
                         var request = objectStore.delete(drink.id);
+                        request.onsuccess = function(event) {
+                            
+                        };
+                        request.onerror = function(event) {
+                            console.log("Failed to delete drink");
+                        };
                     } else {
                         console.error("Invalid key");
                     }
+
                     request.onsuccess = function(event) {
                         console.log("Drink deleted successfully");
                         // Remove the deleted drink from the table
@@ -128,8 +136,8 @@
 
     <body>
         <h1>Alcohol Tracker</h1>
-        <p>Enter the details of your drink below to track your alcohol consumption.</p>
         <p>WIE MACHT DER BÄR?</p>
+        <p>Enter the details of your drink below to track your alcohol consumption.</p>
         <form>
             <label for="name">Name:</label>
             <input type="text" id="name" required><br><br>
