@@ -1,43 +1,23 @@
 # Alcohol Tracker
 
-The Alcohol Tracker is a web-based application that allows users to track the volume of pure alcohol consumed based on the drink volume and alcohol percentage. It utilizes IndexedDB to store all data locally in the web browser.
-
-## Features
-
-- Calculate the volume of pure alcohol consumed based on drink volume and alcohol percentage.
-- Store and retrieve data locally in the web browser using IndexedDB.
-- View a summary of alcohol consumption over time.
-- Set goals and track progress towards reducing alcohol consumption.
-
-## Technologies Used
-
-- HTML, CSS, and JavaScript for the front-end development.
-- IndexedDB for local data storage.
-- [Chart.js](https://www.chartjs.org/) for visualizing alcohol consumption data.
-
-## Getting Started
-
-To run the Alcohol Tracker locally, follow these steps:
-
-1. Download HTML
-2. Open HTML
+This alcohol tracker was commissioned by my friend Lennart. It calculates the amount of alcohol consumed based on the volume and percentage of the drink. It also stores one week's worth of data in local storage.
 
 ## Usage
 
-1. Enter the drink volume and alcohol percentage in the provided input fields.
-2. Click the "Add Drink" button to calculate the volume of pure alcohol consumed and store the data in IndexedDB.
-3. View the summary of alcohol consumption over time in the chart.
-4. Set goals and track your progress towards reducing alcohol consumption.
+To use the Alcohol Tracker, follow these steps:
 
-## Contributing
+1. Go to the webpage [alcoholtracker.shadowlabs.cc](https://alcoholtracker.shadowlabs.cc).
+2. Enter the volume and percentage of the drink you consumed.
+3. The tracker will calculate the amount of alcohol consumed and store the data in local storage.
 
-Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
+## Technologies Used
+
+The Alcohol Tracker is built using the following technologies:
+
+- HTML
+- CSS
+- JavaScript
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-## Acknowledgements
-
-- [Chart.js](https://www.chartjs.org/) - Simple yet flexible JavaScript charting library.
-- [IndexedDB API](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) - Web API for client-side storage of significant amounts of structured data.
