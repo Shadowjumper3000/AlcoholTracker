@@ -19,9 +19,8 @@ The Alcohol Tracker is a web-based application that allows users to track the vo
 
 To run the Alcohol Tracker locally, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/your-username/alcohol-tracker.git`
-2. Open the project in your favorite code editor.
-3. Open the `index.html` file in a web browser.
+1. Download HTML
+2. Open HTML
 
 ## Usage
 
